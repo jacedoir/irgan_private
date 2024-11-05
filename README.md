@@ -1,5 +1,7 @@
 # IRGAN
 
+If you want to download checkpoints to run the test download and unzip this folder at the root of the repository: https://drive.google.com/file/d/1boyBtcgvJS1l4zJOONlcMthV7fpZwYJo/view?usp=share_link
+
 We  provide PyTorch implementations for IRGAN. 
 
 #Train
