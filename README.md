@@ -6,11 +6,11 @@ We  provide PyTorch implementations for IRGAN.
 
 #Train
 
-python train.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction BtoA
+python train.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
 
 #Test
 
-python test.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction BtoA
+python test.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
 
 #Acknowledgments
 
