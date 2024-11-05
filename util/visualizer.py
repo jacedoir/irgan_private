@@ -51,7 +51,9 @@ def save_images(webpage, visuals, image_path, aspect_ratio=1.0, width=256):
 
             # Convert back to NumPy array
             im = np.array(im)        
-            util.save_image(im, save_path)
+        util.save_image(im, save_path)
+        print('Saving image to %s' % save_path)
+
 
         ims.append(image_name)
         txts.append(label)
