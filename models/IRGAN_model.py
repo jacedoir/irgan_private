@@ -60,6 +60,7 @@ class IRGANModel(BaseModel):
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
         
+        print(self.preprocess, type(self.preprocess))
         if self.preprocess:
             self.preprocess_network = PreProcessModel(3,3).to(self.device)
 
