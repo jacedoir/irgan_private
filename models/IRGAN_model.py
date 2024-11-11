@@ -25,7 +25,7 @@ class IRGANModel(BaseModel):
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
-        self.preprocess = opt.preprocess
+        self.preprocess = bool(opt.preprocess)
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
         self.loss_names = ['G_GAN', 'G_L1',  'G_Sobel', 'D_real', 'D_fake']
         # specify the images you want to save/display. The program will call base_model.get_current_visuals
@@ -73,7 +73,6 @@ class IRGANModel(BaseModel):
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
 
     def forward(self):
-        print(self.preprocess)
         if self.preprocess:
             temp = self.preprocess_network(self.real_A)
             self.real_A = temp
