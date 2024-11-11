@@ -2,6 +2,7 @@
 import torch
 from util.image_pool import ImagePool
 from .base_model import BaseModel
+from preprocess import PreProcessModel
 from . import networks
 
 
@@ -24,6 +25,7 @@ class IRGANModel(BaseModel):
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
+        self.preprocess = opt.preprocess
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
         self.loss_names = ['G_GAN', 'G_L1',  'G_Sobel', 'D_real', 'D_fake']
         # specify the images you want to save/display. The program will call base_model.get_current_visuals
@@ -57,6 +59,9 @@ class IRGANModel(BaseModel):
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
+        
+        if self.preprocess:
+            self.preprocess_network = PreProcessModel()
 
 
 
@@ -67,6 +72,10 @@ class IRGANModel(BaseModel):
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
 
     def forward(self):
+        print(self.preprocess)
+        if self.preprocess:
+            temp = self.preprocess_network(self.real_A)
+            self.real_A = temp
         self.fake_B = self.netG(self.real_A)
 
     ###########
