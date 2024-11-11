@@ -157,6 +157,7 @@ class MCEM(nn.Module):
         self.conv_out_g = nn.Conv2d(channels//2, in_channels//4, kernel_size=1, stride=1, padding=0, bias=False)
         self.conv_out_b = nn.Conv2d(channels//2, in_channels//4, kernel_size=1, stride=1, padding=0, bias=False)
 
+
     def forward(self, x):
         
         x1,x2, x3,x4= torch.chunk(x, 4, dim=1)
@@ -176,9 +177,9 @@ class MCEM(nn.Module):
         mix = out_instance_r + out_instance_g + out_instance_b+x4
         
         out_instance= torch.cat((out_instance_r, out_instance_g, out_instance_b, mix),dim=1)
+        out = torch.sigmoid_(out_instance)
 
-        return torch.sigmoid_(out_instance)
-
+        return out
 class PreProcessModel(nn.Module):
     def __init__(self, in_nc=3, base_nf=16):
         super(PreProcessModel, self).__init__()
@@ -190,6 +191,8 @@ class PreProcessModel(nn.Module):
         self.agg = Aggreation(base_nf*3, base_nf)
 
         self.color2 = MCEM(base_nf, base_nf*2)
+
+        self.last_conv = ConvLayer(base_nf, in_nc, 1, 1, bias=True)
         
     def forward(self, inp):
         
@@ -200,4 +203,5 @@ class PreProcessModel(nn.Module):
         mix_out = self.agg(torch.cat((out, out_1_1, out_1_2), dim=1))
 
         out = self.color2(mix_out)
+        out = self.last_conv(out)
         return out

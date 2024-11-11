@@ -12,6 +12,10 @@ python train.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --d
 
 python test.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
 
+NB :
+- add "--preprocess true" to use the prepross model
+- tevnet incoming
+
 #Acknowledgments
 
 Our code is inspired by https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix , https://github.com/NVIDIA/pix2pixHD and https://github.com/facebookresearch/ConvNeXt.

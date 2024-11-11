@@ -25,11 +25,15 @@ class IRGANModel(BaseModel):
     def initialize(self, opt):
         BaseModel.initialize(self, opt)
         self.isTrain = opt.isTrain
+        print(opt.preprocess, bool(opt.preprocess))
         self.preprocess = bool(opt.preprocess)
+        self.preprocessed = None
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
         self.loss_names = ['G_GAN', 'G_L1',  'G_Sobel', 'D_real', 'D_fake']
         # specify the images you want to save/display. The program will call base_model.get_current_visuals
         self.visual_names = ['real_A', 'fake_B', 'real_B']
+        if self.preprocess:
+            self.visual_names.insert(1, 'preprocessed')
         # specify the models you want to save to the disk. The program will call base_model.save_networks and base_model.load_networks
         if self.isTrain:
             self.model_names = ['G', 'D']
@@ -62,7 +66,7 @@ class IRGANModel(BaseModel):
         
         print(self.preprocess, type(self.preprocess))
         if self.preprocess:
-            self.preprocess_network = PreProcessModel(3,3).to(self.device)
+            self.preprocess_network = PreProcessModel(3,16).to(self.device)
 
 
 
@@ -74,9 +78,11 @@ class IRGANModel(BaseModel):
 
     def forward(self):
         if self.preprocess:
-            temp = self.preprocess_network(self.real_A)
-            self.real_A = temp
-        self.fake_B = self.netG(self.real_A)
+            preprocessed = self.preprocess_network(self.real_A)
+            self.preprocessed = preprocessed
+            self.fake_B = self.netG(preprocessed)
+        else:
+            self.fake_B = self.netG(self.real_A)
 
     ###########
     def test_new(self):
