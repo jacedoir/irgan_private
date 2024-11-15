@@ -68,7 +68,7 @@ class BaseOptions():
         parser.add_argument('--verbose', action='store_true', help='if specified, print more debugging information')
         parser.add_argument('--suffix', default='', type=str,
                             help='customized suffix: opt.name = opt.name + suffix: e.g., {model}_{netG}_size{loadSize}')
-        parser.add_argument('--preprocess', type=str, default=False, help='Apply the preprocessing model [true] ')
+        parser.add_argument('--preprocess', type=str, default=False, help='Apply the preprocessing model, true for last conv layer 16->3, full for without last conv [true|full] ')
         self.initialized = True
         return parser
 

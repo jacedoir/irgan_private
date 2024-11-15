@@ -181,7 +181,7 @@ class MCEM(nn.Module):
 
         return out
 class PreProcessModel(nn.Module):
-    def __init__(self, in_nc=3, base_nf=16):
+    def __init__(self, in_nc=3, base_nf=16, final_conv=True):
         super(PreProcessModel, self).__init__()
 
         self.conv1 = ConvLayer(in_nc, base_nf, 1, 1, bias=True)
@@ -190,9 +190,10 @@ class PreProcessModel(nn.Module):
 
         self.agg = Aggreation(base_nf*3, base_nf)
 
-        self.color2 = MCEM(base_nf, base_nf*2)
-
-        self.last_conv = ConvLayer(base_nf, in_nc, 1, 1, bias=True)
+        # self.color2 = MCEM(base_nf, base_nf*2)
+        self.final_conv = final_conv
+        if self.final_conv:
+            self.last_conv = ConvLayer(base_nf, in_nc, 1, 1, bias=True)
         
     def forward(self, inp):
         
@@ -200,8 +201,8 @@ class PreProcessModel(nn.Module):
         out_1_1 = self.color1(out)
         out_1_2 = self.enhance(out)
 
-        mix_out = self.agg(torch.cat((out, out_1_1, out_1_2), dim=1))
-
-        out = self.color2(mix_out)
-        out = self.last_conv(out)
+        out = self.agg(torch.cat((out, out_1_1, out_1_2), dim=1))
+        # out = self.color2(mix_out)
+        if self.final_conv:
+            out = self.last_conv(out)
         return out

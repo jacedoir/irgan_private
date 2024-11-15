@@ -4,6 +4,7 @@ from util.image_pool import ImagePool
 from .base_model import BaseModel
 from preprocess import PreProcessModel
 from . import networks
+from print_if_full import for_preprocessed_image
 
 
 class IRGANModel(BaseModel):
@@ -27,6 +28,7 @@ class IRGANModel(BaseModel):
         self.isTrain = opt.isTrain
         print(opt.preprocess, bool(opt.preprocess))
         self.preprocess = bool(opt.preprocess)
+        self.preprocess_type = opt.preprocess
         self.preprocessed = None
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
         self.loss_names = ['G_GAN', 'G_L1',  'G_Sobel', 'D_real', 'D_fake']
@@ -40,6 +42,10 @@ class IRGANModel(BaseModel):
         else:  # during test time, only load Gs
             self.model_names = ['G']
         # load/define networks
+
+        
+        if opt.preprocess == 'full':
+            opt.input_nc = 16
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.norm,
                                       not opt.no_dropout, opt.init_type, opt.init_gain, self.gpu_ids)
 
@@ -66,7 +72,11 @@ class IRGANModel(BaseModel):
         
         print(self.preprocess, type(self.preprocess))
         if self.preprocess:
-            self.preprocess_network = PreProcessModel(3,16).to(self.device)
+            if opt.preprocess == 'full':
+                final_conv = False
+            else:
+                final_conv = True
+            self.preprocess_network = PreProcessModel(3,16, final_conv).to(self.device)
 
 
 
@@ -79,7 +89,10 @@ class IRGANModel(BaseModel):
     def forward(self):
         if self.preprocess:
             preprocessed = self.preprocess_network(self.real_A)
-            self.preprocessed = preprocessed
+            if self.preprocess_type == 'full':
+                pass
+            else:
+                self.preprocessed = preprocessed
             self.fake_B = self.netG(preprocessed)
         else:
             self.fake_B = self.netG(self.real_A)

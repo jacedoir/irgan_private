@@ -197,11 +197,11 @@ class DecoderBlock(nn.Module):
 
 
 class uconvnext(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, input_nc,num_classes):
         super(uconvnext, self).__init__()
 
         dims = [96, 192, 384, 768]
-        convnext = convnext_tiny(pretrained=True, num_classes=1000)
+        convnext = convnext_tiny(input_nc,pretrained=True, num_classes=1000)
 
         self.down = convnext.downsample_layers
         self.stages = convnext.stages
@@ -258,8 +258,8 @@ model_urls = {
 }
 
 @register_model
-def convnext_tiny(pretrained=False, **kwargs):
-    model = ConvNeXt(depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], **kwargs)
+def convnext_tiny(input_nc=3,pretrained=False, **kwargs):
+    model = ConvNeXt(in_chans=input_nc, depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], **kwargs)
     if pretrained:
         url = model_urls['convnext_tiny_1k']
         checkpoint = torch.hub.load_state_dict_from_url(url=url, map_location="cpu", check_hash=True)

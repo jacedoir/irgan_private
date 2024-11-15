@@ -60,7 +60,7 @@ def get_scheduler(optimizer, opt):
 def define_G(input_nc, output_nc, ngf, netG, n_downsample_global=3, n_blocks_global=9, n_local_enhancers=1,
              n_blocks_local=3, norm='instance', gpu_ids=[]):
     if netG == 'uconvnext':
-        netG = uconvnext(output_nc).to(device)
+        netG = uconvnext(input_nc,output_nc).to(device)
     else:
         raise ('generator not implemented!')
     print(netG)
