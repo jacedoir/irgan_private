@@ -41,6 +41,8 @@ class IRGANModel(BaseModel):
             self.model_names = ['G', 'D']
         else:  # during test time, only load Gs
             self.model_names = ['G']
+        if self.preprocess:
+            self.model_names.append('preprocess')
         # load/define networks
 
         
@@ -67,6 +69,7 @@ class IRGANModel(BaseModel):
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(),
                                                 lr=opt.lr, betas=(opt.beta1, 0.999))
+            
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
         
@@ -76,7 +79,11 @@ class IRGANModel(BaseModel):
                 final_conv = False
             else:
                 final_conv = True
-            self.preprocess_network = PreProcessModel(3,16, final_conv).to(self.device)
+            self.netpreprocess = PreProcessModel(3,16, final_conv).to(self.device)
+            self.preprocess_optimizer = torch.optim.Adam(self.netpreprocess.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+            self.optimizers.append(self.preprocess_optimizer)
+            self.criterion_preprocess = torch.nn.SmoothL1Loss()
+
 
 
 
@@ -88,7 +95,7 @@ class IRGANModel(BaseModel):
 
     def forward(self):
         if self.preprocess:
-            preprocessed = self.preprocess_network(self.real_A)
+            preprocessed = self.netpreprocess(self.real_A)
             if self.preprocess_type == 'full':
                 pass
             else:
@@ -118,9 +125,6 @@ class IRGANModel(BaseModel):
         self.loss_D = (self.loss_D_fake + self.loss_D_real) * 0.5
         self.loss_D.backward()
 
-
-
-
     def backward_G(self):
         #patchgan
         fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1))
@@ -135,9 +139,19 @@ class IRGANModel(BaseModel):
         self.loss_G = self.loss_G_L1 + self.loss_G_GAN + self.loss_G_Sobel
 
         self.loss_G.backward()
+    
+    def backward_preprocess(self):
+        #fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1))
+        self.loss_preprocess = self.criterion_preprocess(self.preprocessed, self.real_A) * self.opt.lambda_L1
+        self.loss_preprocess.backward()
+
 
     def optimize_parameters(self):
         self.forward()
+        self.set_requires_grad(self.netG, True)
+        # if self.preprocess:
+        #     self.set_requires_grad(self.netpreprocess, False)
+
         # update D
         self.set_requires_grad(self.netD, True)
         self.optimizer_D.zero_grad()
@@ -149,3 +163,7 @@ class IRGANModel(BaseModel):
         self.optimizer_G.zero_grad()
         self.backward_G()
         self.optimizer_G.step()
+
+        #update preprocess
+        if self.preprocess:
+            self.preprocess_optimizer.step()
