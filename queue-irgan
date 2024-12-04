@@ -9,7 +9,6 @@
 #SBATCH --error=./outs/errors/slurm-%j.err
 
 
-
 srun python train.py \
     --dataroot ./datasets/KAIST \
     --name KAIST_IRGAN \

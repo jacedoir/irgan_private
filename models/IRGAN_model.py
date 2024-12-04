@@ -59,6 +59,7 @@ class IRGANModel(BaseModel):
 
         if self.tevnet:
             from TeVNet.models import TeVNet
+            from TeVNet.utils import TeVloss
 
             self.tevnet_model = TeVNet(in_channels=3, out_channels=2 + opt.vnums, args=opt).to(self.device)
             self.tevnet_model = nn.DataParallel(self.tevnet_model, device_ids=[0])
@@ -72,6 +73,7 @@ class IRGANModel(BaseModel):
 
             self.tevnet_model.to(self.device)
             self.tevnet_model.eval()
+            self.lossmodule = TeVloss(vnums=opt.vnums)
 
             print("TeVNet Loaded", flush = True)
 
@@ -92,6 +94,7 @@ class IRGANModel(BaseModel):
             self.criterionGAN = networks.GANLoss().to(self.device)
             self.criterionL1 = torch.nn.L1Loss()
             self.sobelloss = networks.SobelLoss()
+
 
             # initialize optimizers
             self.optimizers = []
@@ -174,10 +177,14 @@ class IRGANModel(BaseModel):
             # Compare TeVNet decompositions
             self.loss_G_TeVNet = (
                 self.criterionL1(fake_tevnet_output[:, 0:2], real_tevnet_output[:, 0:2]) * 0.5 +  # T and e components
-                self.criterionL1(fake_tevnet_output[:, 2:], real_tevnet_output[:, 2:]) * 0.5      # V components
+                self.criterionL1(fake_tevnet_output[:, 2:], real_tevnet_output[:, 2:]) * 0.5 +    # V components
+                self.lossmodule.loss_rec(fake_tevnet_output, self.fake_B) # Reconstuction loss
             ) * self.opt.lambda_tevnet
+
         else:
             self.loss_G_TeVNet = 0.0
+
+        print(self.loss_G_TeVNet)
 
         self.loss_G = self.loss_G_L1 + self.loss_G_GAN + self.loss_G_Sobel + self.loss_G_TeVNet
 

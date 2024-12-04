@@ -65,3 +65,14 @@ epoch: 62; loss: 0.00000512
 epoch: 63; loss: 0.00000654
 epoch: 64; loss: 0.00000521
 epoch: 65; loss: 0.00000616
+epoch: 0; loss: 0.00109944
+epoch: 1; loss: 0.00037846
+epoch: 2; loss: 0.00019593
+epoch: 3; loss: 0.00014868
+epoch: 4; loss: 0.00011921
+epoch: 5; loss: 0.00014435
+epoch: 6; loss: 0.00009008
+epoch: 7; loss: 0.00012823
+epoch: 8; loss: 0.00007446
+epoch: 9; loss: 0.00005621
+epoch: 10; loss: 0.00005744
