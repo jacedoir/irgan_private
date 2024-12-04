@@ -1,9 +1,10 @@
-
 import torch
 from util.image_pool import ImagePool
 from .base_model import BaseModel
 from preprocess import PreProcessModel
-from . import networks
+from . import networks 
+import argparse
+from torch import nn
 from print_if_full import for_preprocessed_image
 
 
@@ -16,11 +17,18 @@ class IRGANModel(BaseModel):
         parser.set_defaults(norm='batch', netG='uconvnext')
         parser.set_defaults(dataset_mode='aligned')
         if is_train:
+            
             parser.set_defaults(pool_size=0, no_lsgan=True)
             parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
             parser.add_argument('--lambda_sobel', type=float, default=15.0, help='weight for sobel loss')
+            parser.add_argument('--lambda_tevnet', type=float, default=15.0, help='weight for TeVNet loss')
+            parser.add_argument('--tevnet_weights', type=str, default=None,  help='path to pretrained TeVNet weights')
             parser.add_argument('--num_D', type=int, default=3, help='scale')
-
+            parser.add_argument('--vnums', type=int, default=4)
+            parser.add_argument('--smp_model', type=str, default='Unet')
+            parser.add_argument('--smp_encoder', type=str, default='resnet18')
+            parser.add_argument('--smp_encoder_weights', type=str, default='imagenet')
+            
         return parser
 
     def initialize(self, opt):
@@ -29,9 +37,12 @@ class IRGANModel(BaseModel):
         print(opt.preprocess, bool(opt.preprocess))
         self.preprocess = bool(opt.preprocess)
         self.preprocess_type = opt.preprocess
+        self.tevnet = opt.tevnet_weights
+
+        print("Tevnet pth = ", self.tevnet)
         self.preprocessed = None
         # specify the training losses you want to print out. The program will call base_model.get_current_losses
-        self.loss_names = ['G_GAN', 'G_L1',  'G_Sobel', 'D_real', 'D_fake']
+        self.loss_names = ['G_GAN', 'G_L1', 'G_Sobel', 'G_TeVNet', 'D_real', 'D_fake']
         # specify the images you want to save/display. The program will call base_model.get_current_visuals
         self.visual_names = ['real_A', 'fake_B', 'real_B']
         if self.preprocess:
@@ -44,6 +55,25 @@ class IRGANModel(BaseModel):
         if self.preprocess:
             self.model_names.append('preprocess')
         # load/define networks
+
+
+        if self.tevnet:
+            from TeVNet.models import TeVNet
+
+            self.tevnet_model = TeVNet(in_channels=3, out_channels=2 + opt.vnums, args=opt).to(self.device)
+            self.tevnet_model = nn.DataParallel(self.tevnet_model, device_ids=[0])
+
+            state_dict = self.tevnet_model.state_dict()
+            for n, p in torch.load(self.tevnet, map_location=lambda storage, loc: storage, weights_only = True)['state_dict'].items():
+                if n in state_dict:
+                    state_dict[n].copy_(p)
+                else:
+                    raise KeyError(f"Key '{n}' not found in model state_dict.")
+
+            self.tevnet_model.to(self.device)
+            self.tevnet_model.eval()
+
+            print("TeVNet Loaded", flush = True)
 
         
         if opt.preprocess == 'full':
@@ -112,6 +142,8 @@ class IRGANModel(BaseModel):
         loss_mse = mse(self.real_B, self.fake_B)
         return loss_mse
 
+
+
     def backward_D(self):
         #patchgan
         fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1)).detach()
@@ -131,14 +163,27 @@ class IRGANModel(BaseModel):
         pred_fake = self.netD(fake_AB)
         self.loss_G_GAN = self.criterionGAN(pred_fake, True) / self.opt.num_D
 
-
         self.loss_G_L1 = self.criterionL1(self.fake_B, self.real_B) * self.opt.lambda_L1
         self.loss_G_Sobel = self.sobelloss(self.fake_B, self.real_B) * self.opt.lambda_sobel
 
+        if self.tevnet:
+            with torch.no_grad():
+                real_tevnet_output = self.tevnet_model(self.real_B)
+                fake_tevnet_output = self.tevnet_model(self.fake_B)
+            
+            # Compare TeVNet decompositions
+            self.loss_G_TeVNet = (
+                self.criterionL1(fake_tevnet_output[:, 0:2], real_tevnet_output[:, 0:2]) * 0.5 +  # T and e components
+                self.criterionL1(fake_tevnet_output[:, 2:], real_tevnet_output[:, 2:]) * 0.5      # V components
+            ) * self.opt.lambda_tevnet
+        else:
+            self.loss_G_TeVNet = 0.0
 
-        self.loss_G = self.loss_G_L1 + self.loss_G_GAN + self.loss_G_Sobel
+        self.loss_G = self.loss_G_L1 + self.loss_G_GAN + self.loss_G_Sobel + self.loss_G_TeVNet
 
         self.loss_G.backward()
+
+
     
     def backward_preprocess(self):
         #fake_AB = self.fake_AB_pool.query(torch.cat((self.real_A, self.fake_B), 1))
@@ -167,3 +212,6 @@ class IRGANModel(BaseModel):
         #update preprocess
         if self.preprocess:
             self.preprocess_optimizer.step()
+
+
+

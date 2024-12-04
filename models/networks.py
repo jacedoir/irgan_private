@@ -445,3 +445,38 @@ class SobelLoss(nn.Module):
         return loss
 
 
+class TeVNetLoss(nn.Module):
+    def __init__(self, pretrained_model, checkpoint_path):
+
+        super(TeVNetLoss, self).__init__()
+        self.pretrained_model = pretrained_model()
+        self.pretrained_model = load_tevnet(self.pretrained_model, checkpoint_path).cuda()
+        self.lambda_tevnet = lambda_tevnet
+        self.criterionL1 = nn.L1Loss()
+
+    def forward(self, fake_output, real_B):
+        """
+        Args:
+            fake_output (Tensor): The output from the generator model.
+            real_B (Tensor): The ground truth image to compare against.
+
+        Returns:
+            loss (Tensor): The computed TeVNet loss.
+        """
+        # Get the features from the pretrained model for both fake and real images
+        fake_features = self.pretrained_model(fake_output)
+        real_features = self.pretrained_model(real_B)
+
+        # Compute the L1 loss between the features of the generated and real images
+        loss = self.criterionL1(fake_features, real_features)
+
+        return loss
+
+
+def load_tevnet(model, checkpoint_path):
+
+    checkpoint = torch.load(checkpoint_path)
+    model.load_state_dict(checkpoint['model_state_dict'])  
+
+    print(f"Checkpoint loaded from {checkpoint_path}")
+    return model
