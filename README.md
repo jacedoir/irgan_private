@@ -4,6 +4,9 @@ If you want to download checkpoints to run the test download and unzip this fold
 
 We  provide PyTorch implementations for IRGAN. 
 
+#Start Visdom server
+python -m visdom.server
+
 #Train
 
 python train.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
