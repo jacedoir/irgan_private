@@ -3,7 +3,7 @@ import random
 import shutil
 
 # Set paths
-dataroot = 'datasets/VEDAI'  # Root directory for your dataset
+dataroot = 'datasets/KAIST'  # Root directory for your dataset
 train_dir = os.path.join(dataroot, 'train')  # Directory containing all AB images
 test_dir = os.path.join(dataroot, 'test')  # Directory for test images
 
