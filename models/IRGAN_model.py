@@ -21,14 +21,13 @@ class IRGANModel(BaseModel):
             parser.set_defaults(pool_size=0, no_lsgan=True)
             parser.add_argument('--lambda_L1', type=float, default=100.0, help='weight for L1 loss')
             parser.add_argument('--lambda_sobel', type=float, default=15.0, help='weight for sobel loss')
-            parser.add_argument('--lambda_tevnet', type=float, default=15.0, help='weight for TeVNet loss')
-            parser.add_argument('--tevnet_weights', type=str, default=None,  help='path to pretrained TeVNet weights')
             parser.add_argument('--num_D', type=int, default=3, help='scale')
             parser.add_argument('--vnums', type=int, default=4)
             parser.add_argument('--smp_model', type=str, default='Unet')
             parser.add_argument('--smp_encoder', type=str, default='resnet18')
             parser.add_argument('--smp_encoder_weights', type=str, default='imagenet')
-            
+        parser.add_argument('--lambda_tevnet', type=float, default=15.0, help='weight for TeVNet loss')
+        parser.add_argument('--tevnet_weights', type=str, default=None,  help='path to pretrained TeVNet weights')
         return parser
 
     def initialize(self, opt):
