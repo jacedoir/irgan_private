@@ -4,6 +4,9 @@ If you want to download checkpoints to run the test download and unzip this fold
 
 We  provide PyTorch implementations for IRGAN. 
 
+#Start Visdom server
+python -m visdom.server
+
 #Train
 
 python train.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
@@ -20,6 +23,8 @@ NB :
 
 Our code is inspired by https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix , https://github.com/NVIDIA/pix2pixHD and https://github.com/facebookresearch/ConvNeXt.
 
+#setup env
+pip install -U git+https://github.com/qubvel/segmentation_models.pytorch
 
 # For preprocesing, repo is here
 https://github.com/CXH-Research/IRFormer
