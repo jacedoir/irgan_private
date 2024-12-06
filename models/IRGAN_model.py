@@ -112,9 +112,10 @@ class IRGANModel(BaseModel):
             else:
                 final_conv = True
             self.netpreprocess = PreProcessModel(3,16, final_conv).to(self.device)
-            self.preprocess_optimizer = torch.optim.Adam(self.netpreprocess.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
-            self.optimizers.append(self.preprocess_optimizer)
-            self.criterion_preprocess = torch.nn.SmoothL1Loss()
+            if self.isTrain:
+                self.preprocess_optimizer = torch.optim.Adam(self.netpreprocess.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
+                self.optimizers.append(self.preprocess_optimizer)
+                self.criterion_preprocess = torch.nn.SmoothL1Loss()
 
 
 
