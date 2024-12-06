@@ -4,14 +4,15 @@ If you want to download checkpoints to run the test download and unzip this fold
 
 We  provide PyTorch implementations for IRGAN. 
 
-#Start Visdom server
+# Start Visdom server
+
 python -m visdom.server
 
-#Train
+# Train
 
 python train.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
 
-#Test
+# Test
 
 python test.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --direction AtoB
 
@@ -19,7 +20,10 @@ NB :
 - add "--preprocess true" to use the prepross model
 - aad "--tevnet_weights <path>" to use tevnet and precise "--lambda_tevnet XX" default is 15.0
 
-#Acknowledgments
+# Run scoring
+python result_metrics.py --experiment <Name of the experiment> ex: python result_metrics.py --experiment KAIST_IRGAN_preprocess_v3
+
+# Acknowledgments
 
 Our code is inspired by https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix , https://github.com/NVIDIA/pix2pixHD and https://github.com/facebookresearch/ConvNeXt.
 
