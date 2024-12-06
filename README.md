@@ -14,7 +14,7 @@ python test.py --dataroot ./datasets/VEDAI --name VEDAI_IRGAN --model IRGAN --di
 
 NB :
 - add "--preprocess true" to use the prepross model
-- tevnet incoming
+- aad "--tevnet_weights <path>" to use tevnet and precise "--lambda_tevnet XX" default is 15.0
 
 #Acknowledgments
 
