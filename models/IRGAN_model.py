@@ -184,8 +184,6 @@ class IRGANModel(BaseModel):
         else:
             self.loss_G_TeVNet = 0.0
 
-        print(self.loss_G_TeVNet)
-
         self.loss_G = self.loss_G_L1 + self.loss_G_GAN + self.loss_G_Sobel + self.loss_G_TeVNet
 
         self.loss_G.backward()

@@ -20,7 +20,7 @@ if __name__ == '__main__':
 
     model = create_model(opt)       # create a model given opt.model and other options
     model.setup(opt)                # regular setup: load and print networks; create schedulers
-    # visualizer = Visualizer(opt)    # create a visualizer that display/save images and plots
+    visualizer = Visualizer(opt)    # create a visualizer that display/save images and plots
     total_steps = 0                 # the total number of training iterations
 
     for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
@@ -35,7 +35,7 @@ if __name__ == '__main__':
             iter_start_time = time.time()
             if total_steps % opt.print_freq == 0:
                 t_data = iter_start_time - iter_data_time
-            # visualizer.reset()
+            visualizer.reset()
             total_steps += opt.batch_size
             epoch_iter += opt.batch_size
             model.set_input(data)
@@ -44,15 +44,14 @@ if __name__ == '__main__':
             if total_steps % opt.display_freq == 0:
                 save_result = total_steps % opt.update_html_freq == 0
                 model.compute_visuals()
-                # visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
+                visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
 
             if total_steps % opt.print_freq == 0:
                 losses = model.get_current_losses()
                 t = (time.time() - iter_start_time) / opt.batch_size
-                # visualizer.print_current_losses(epoch, epoch_iter, losses, t, t_data)
+                visualizer.print_current_losses(epoch, epoch_iter, losses, t, t_data)
                 if opt.display_id > 0:
-                    continue 
-                    # visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, opt, losses)
+                    visualizer.plot_current_losses(epoch, float(epoch_iter) / dataset_size, opt, losses)
 
             if total_steps % opt.save_latest_freq == 0:
                 print('saving the latest model (epoch %d, total_steps %d)' % (epoch, total_steps))
